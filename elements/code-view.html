@@ -13,7 +13,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <dom-module id="code-view">
   <template strip-whitespace>
     <style>
-      :host {
+       :host {
         display: block;
       }
     </style>
@@ -42,7 +42,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this._aceEditor.setTheme("ace/theme/monokai");
         this._aceEditor.getSession().setMode("ace/mode/html");
         this._aceEditor.$blockScrolling = Infinity;
-        this._aceEditor.setOptions({fontSize: "14px"});
+        this._aceEditor.setOptions({ fontSize: "14px" });
       }
 
       update(code) {
@@ -92,8 +92,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this._attributeDefaultsForTag[tag][attr] = el.getAttribute(attr);
         }
       }
-
-      get(usePolygit) {
+      getAsStandAlone(fragment, usePolygit) {
         const parent = this.canvasElement;
 
         // Imports. Yes i'm using element globals because I'm lazy. Fight me.
@@ -139,6 +138,8 @@ ${this._template.trimRight()}
     });
   &lt;/script>
 </dom-module>`;
+
+
         let appTitle = 'wizzywid output';
         let html = `<!DOCTYPE html>
 <html>
@@ -169,8 +170,47 @@ ${domModule}
         return html.replace(/&lt;/g, '<');
       }
 
+
+      getAsFragment(fragment, usePolygit) {
+        const parent = this.canvasElement;
+
+        // Imports. Yes i'm using element globals because I'm lazy. Fight me.
+        this._imports = '';
+        this._template = '';
+        this._style = '';
+
+        // Host styles.
+        let hostCss = parent.style.cssText.replace(/;/g, `;\n       `).trim();
+        let bonusHost = `        ${hostCss}`;
+
+        let polygitBase = '';
+        var directoryPrefix = usePolygit ? '' : 'bower_components/';
+        if (usePolygit) {
+          polygitBase = '<base href="https://polygit.org/polymer+:master/webcomponents+:master/shadycss+webcomponents+:master/paper*+polymerelements+:master/iron*+polymerelements+:master/app*+polymerelements+:master/neon*+polymerelements+:master/components/">';
+        }
+
+        this.dumpNode(parent, '    ', directoryPrefix);
+
+        let sample = `
+  <template>
+    <style>
+      :host {
+        display: block;
+        position: relative;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+${bonusHost.trimRight()}
+      }
+${this._style.trimRight()}
+    </style>
+${this._template.trimRight()}
+  </template>`;
+        return sample.replace(/&lt;/g, '<');
+      }
+
       dump(parent) {
-        this.update(this.get(parent));
+        this.update(this.getAsStandAlone(parent));
       }
 
       dumpNode(parent, indent, directoryPrefix) {
@@ -232,8 +272,8 @@ ${domModule}
       dumpElementStartTag(tag, node, indent) {
         let str = this.dumpPropsAndAttributes(tag, node);
         return str.length === 0 ?
-            `${indent}<${tag}>` :
-            `${indent}<${tag} ${str}>`;
+          `${indent}<${tag}>` :
+          `${indent}<${tag} ${str}>`;
       }
 
       dumpElementEndTag(tag, node, indent) {

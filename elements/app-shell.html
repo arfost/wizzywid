@@ -402,9 +402,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       viewDemo() {
-        if (!window.codeView.get)
+        if (!window.codeView.getAsStandAlone)
           return;
-        this.$.demoView.display(window.codeView.get());
+        this.$.demoView.display(window.codeView.getAsStandAlone());
       }
 
       _setPropertyOrValue(name, value, isAttribute) {
