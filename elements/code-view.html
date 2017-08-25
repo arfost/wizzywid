@@ -184,7 +184,7 @@ ${domModule}
         let bonusHost = `        ${hostCss}`;
 
         let polygitBase = '';
-        var directoryPrefix = usePolygit ? '' : 'bower_components/';
+        var directoryPrefix = usePolygit ? '' : '../bower_components/';
         if (usePolygit) {
           polygitBase = '<base href="https://polygit.org/polymer+:master/webcomponents+:master/shadycss+webcomponents+:master/paper*+polymerelements+:master/iron*+polymerelements+:master/app*+polymerelements+:master/neon*+polymerelements+:master/components/">';
         }
@@ -192,6 +192,7 @@ ${domModule}
         this.dumpNode(parent, '    ', directoryPrefix);
 
         let sample = `
+        ${this._imports.trimRight()}
   <template>
     <style>
       :host {
