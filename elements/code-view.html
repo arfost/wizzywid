@@ -110,7 +110,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           polygitBase = '<base href="https://polygit.org/polymer+:master/webcomponents+:master/shadycss+webcomponents+:master/paper*+polymerelements+:master/iron*+polymerelements+:master/app*+polymerelements+:master/neon*+polymerelements+:master/components/">';
         }
 
-        this.dumpNode(parent, '    ', directoryPrefix);
+        this.dumpNode(parent, '    ', directoryPrefix, false);
 
         let domModule = `
 <dom-module id="main-app">
@@ -189,7 +189,7 @@ ${domModule}
           polygitBase = '<base href="https://polygit.org/polymer+:master/webcomponents+:master/shadycss+webcomponents+:master/paper*+polymerelements+:master/iron*+polymerelements+:master/app*+polymerelements+:master/neon*+polymerelements+:master/components/">';
         }
 
-        this.dumpNode(parent, '    ', directoryPrefix);
+        this.dumpNode(parent, '    ', directoryPrefix, true);
 
         let sample = `
         ${this._imports.trimRight()}
@@ -214,7 +214,7 @@ ${this._template.trimRight()}
         this.update(this.getAsStandAlone(parent));
       }
 
-      dumpNode(parent, indent, directoryPrefix) {
+      dumpNode(parent, indent, directoryPrefix, fragment) {
         let nodes = parent.children;
 
         for (let i = 0; i < nodes.length; i++) {
@@ -237,8 +237,8 @@ ${this._template.trimRight()}
           this._style += this.dumpStyle(tag, nodes[i], '      ');
 
           // If this element doesn't have children, do it on one line.
-          this._template += this.dumpElementStartTag(tag, nodes[i], indent);
-          if (tag === 'dom-repeat') {
+          this._template += this.dumpElementStartTag(tag, nodes[i], indent, fragment);
+          if (tag === 'dom-repeat' && !fragment) {
             // We need to wrap the children in a template.
             this._template += `\n${indent}  <template>`;
           }
@@ -249,10 +249,10 @@ ${this._template.trimRight()}
             endTagIndent = '';
           } else {
             this._template += '\n'
-            this.dumpNode(nodes[i], indent + '  ', directoryPrefix) + '\n';
+            this.dumpNode(nodes[i], indent + '  ', directoryPrefix, fragment) + '\n';
           }
 
-          if (tag === 'dom-repeat') {
+          if (tag === 'dom-repeat' && !fragment) {
             // We need to wrap the children in a template.
             this._template += `${indent}  </template>\n`;
             endTagIndent = indent;
@@ -270,8 +270,8 @@ ${this._template.trimRight()}
           return '';
         }
       }
-      dumpElementStartTag(tag, node, indent) {
-        let str = this.dumpPropsAndAttributes(tag, node);
+      dumpElementStartTag(tag, node, indent, fragment) {
+        let str = this.dumpPropsAndAttributes(tag, node, fragment);
         return str.length === 0 ?
           `${indent}<${tag}>` :
           `${indent}<${tag} ${str}>`;
@@ -293,7 +293,7 @@ ${indent}}
 `
       }
 
-      dumpPropsAndAttributes(tag, node) {
+      dumpPropsAndAttributes(tag, node, fragment) {
         let str = '';
         if (!this._propertyDefaultsForTag[tag]) {
           this._doDefaultsForUnseenTag(tag);
@@ -307,7 +307,7 @@ ${indent}}
           let value = node.getAttribute(name);
           if (value === true || value === "") {
             str += `${name} `;
-          } else if (tag === 'iron-ajax' && name === 'params' && value && value.indexOf('[[') !== -1) {
+          } else if (tag === 'iron-ajax' && name === 'params' && value && value.indexOf('[[') !== -1 && !fragment) {
             // HACK: This is an enourmous hack I added for the demo.
             // Problem: in order to put a data binding inside of the params attribute
             // which is an object, I need to use $= Ugh. Also it's definitely
